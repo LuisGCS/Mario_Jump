@@ -1,23 +1,86 @@
 <!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>MARIO GAME</title>
 
-    <link rel="stylesheet" href="./STYLE.CSS">
-</head>
-<body>
-
-
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="./STYLE.CSS" />
+  </head>
+  <body>
     <div class="game-board">
+      <img src="./IMG/mario.gif" class="mario" alt="Mario" />
+      <img src="./IMG/clouds.png" class="clouds1" alt="" />
+      <img src="./IMG/clouds.png" class="clouds2" alt="" />
+      <img src="./IMG/clouds.png" class="clouds3" alt="" />
+      <div class="floor"></div>
 
-        <img src="./IMG/pipe.png" class="pipe">
-        <img src="./IMG/mario.gif" class="mario">
-        <img src="./IMG/clouds.png" class="clouds1">
-        <img src="./IMG/clouds.png" class="clouds2">
-        <img src="./IMG/clouds.png" class="clouds3">
-        <img src="./IMG/floor.png" class="floor">
-</body>
-<script src="./SCRIPT.JS/COD.JS" defer></script>
+      <!-- Placar (estilo dino do Chrome) -->
+      <div class="hud">
+        <div class="hud-esquerda">
+          <span id="dificuldade-atual">NORMAL</span>
+          <span>NÍVEL <span id="nivel">1</span></span>
+        </div>
+        <div class="placar">
+          <span class="recorde">HI <span id="recorde">00000</span></span>
+          <span id="pontos">00000</span>
+        </div>
+        <button id="btn-som" class="btn-som" title="Som (M)">SOM: ON</button>
+      </div>
+
+      <div class="aviso" id="aviso" hidden></div>
+
+      <!-- Tela inicial -->
+      <div class="tela" id="tela-inicio">
+        <h1>MARIO JUMP</h1>
+        <p>ESCOLHA A DIFICULDADE</p>
+        <div class="dificuldades">
+          <button data-dif="facil">1 · FÁCIL</button>
+          <button data-dif="normal">2 · NORMAL</button>
+          <button data-dif="dificil">3 · DIFÍCIL</button>
+          <button data-dif="insano">4 · INSANO</button>
+        </div>
+        <button class="btn-start" id="btn-start">
+          <img src="./IMG/Daco_4422541.png" alt="START" />
+        </button>
+        <p class="dica">
+          ESPAÇO / ↑ PULAR · SEGURE PARA PULAR MAIS ALTO<br />↓ DESCER RÁPIDO ·
+          P PAUSAR · M SOM<br />
+          PISE NAS TARTARUGAS (+50) · "!" = MÍSSIL CHEGANDO: O ALTO PASSA POR
+          CIMA
+        </p>
+      </div>
+
+      <!-- Tela de pausa -->
+      <div class="tela" id="tela-pausa" hidden>
+        <h1>PAUSADO</h1>
+        <p class="dica">APERTE P PARA CONTINUAR</p>
+      </div>
+
+      <!-- Tela de game over -->
+      <div class="tela" id="tela-fim" hidden>
+        <img src="./IMG/overpic.png" class="img-game-over" alt="GAME OVER" />
+        <p>PONTOS: <span id="fim-pontos">0</span></p>
+        <p class="novo-recorde" id="novo-recorde" hidden>NOVO RECORDE!</p>
+        <div class="dificuldades">
+          <button data-dif="facil">1 · FÁCIL</button>
+          <button data-dif="normal">2 · NORMAL</button>
+          <button data-dif="dificil">3 · DIFÍCIL</button>
+          <button data-dif="insano">4 · INSANO</button>
+        </div>
+        <button class="btn-start" id="btn-reiniciar">
+          <img src="./IMG/Daco_4422541.png" alt="JOGAR DE NOVO" />
+        </button>
+        <p class="dica">ESPAÇO PARA JOGAR DE NOVO</p>
+      </div>
+    </div>
+
+    <script src="./SCRIPT.JS/COD.JS" defer></script>
+  </body>
 </html>

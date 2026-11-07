@@ -10,11 +10,23 @@ Jogo no navegador inspirado em Mario. Aperte qualquer tecla para o Mario pular e
 - CSS3 (animações do cano, das nuvens e do pulo)
 - JavaScript
 
+## Controles
+
+| Tecla | Ação |
+|---|---|
+| Espaço / ↑ / W (ou toque na tela) | Pular (segure para pular mais alto) |
+| ↓ / S | Descer mais rápido |
+| 1 a 4 | Escolher a dificuldade (no menu) |
+| P / Esc | Pausar |
+| M | Ligar/desligar o som |
+
 ## Como funciona
 
-- O pulo é feito adicionando uma classe CSS ao Mario por 500 ms.
-- A cada 10 ms o JavaScript compara a posição do cano com a altura do Mario.
-- Se o cano chega perto e o Mario está baixo, o jogo para, a animação congela e a imagem muda para "game over".
+- Placar no estilo do dino do Chrome: pontos com 5 dígitos, recorde (`HI`) salvo no navegador e o placar pisca com um bip a cada 100 pontos.
+- 4 dificuldades (Fácil, Normal, Difícil, Insano): mudam a velocidade inicial, a aceleração, o espaço entre os canos e os tipos de obstáculo (canos duplos, altos e gigantes). Cada dificuldade tem seu próprio recorde.
+- Inimigos: **tartarugas** andam no chão (pule por cima ou pise nelas para ganhar +50) e **mísseis** voam mais rápido, com um "!" piscando antes de chegar. O míssil baixo precisa ser pulado; o alto passa por cima, então não pule. As imagens são `IMG/koopa.gif` e `IMG/bullet-bill-mario.gif`, configuradas em `SPRITES` no `COD.JS`.
+- O jogo acelera com o tempo e a cada 300 pontos sobe de nível.
+- A física do pulo (gravidade) e o movimento dos canos e do chão rodam em JavaScript com `requestAnimationFrame`.
 
 ## Estrutura
 
@@ -39,8 +51,8 @@ Mario_Jump/
 
 ## Próximos passos
 
-- [ ] Adicionar pontuação
-- [ ] Tocar os áudios que já estão na pasta `SOUNG`
+- [x] Adicionar pontuação
+- [x] Tocar os áudios que já estão na pasta `SOUNG`
 - [ ] Publicar online com GitHub Pages para jogar sem baixar
 
 ## Autor
