@@ -42,37 +42,37 @@ const PONTOS_PISAR = 50;         // bônus por pisar numa tartaruga
 const DIFICULDADES = {
     facil: {
         nome: 'FÁCIL',
-        velInicial: 420,
-        aceleracao: 5,
-        velMax: 800,
+        velInicial: 460,
+        aceleracao: 7,
+        velMax: 880,
         intervalo: [1.1, 2.0],
         padroes: ['simples', 'simples', 'simples', 'tartaruga'],
     },
     normal: {
         nome: 'NORMAL',
-        velInicial: 550,
-        aceleracao: 9,
-        velMax: 1000,
-        intervalo: [0.95, 1.7],
-        padroes: ['simples', 'simples', 'dupla', 'alta', 'tartaruga', 'tartaruga', 'missil-baixo'],
+        velInicial: 600,
+        aceleracao: 12,
+        velMax: 1150,
+        intervalo: [0.85, 1.5],
+        padroes: ['simples', 'simples', 'dupla', 'alta', 'dupla-alta', 'tartaruga', 'tartaruga', 'missil-baixo', 'missil-alto', 'chuck'],
     },
     dificil: {
         nome: 'DIFÍCIL',
-        velInicial: 680,
-        aceleracao: 13,
-        velMax: 1200,
-        intervalo: [0.85, 1.45],
+        velInicial: 730,
+        aceleracao: 16,
+        velMax: 1350,
+        intervalo: [0.75, 1.3],
         padroes: ['simples', 'dupla', 'alta', 'dupla-alta', 'tartaruga', 'tartaruga-dupla',
-                  'missil-baixo', 'missil-alto'],
+                  'missil-baixo', 'missil-alto', 'chuck'],
     },
     insano: {
         nome: 'INSANO',
-        velInicial: 820,
-        aceleracao: 18,
-        velMax: 1450,
-        intervalo: [0.75, 1.25],
+        velInicial: 880,
+        aceleracao: 22,
+        velMax: 1600,
+        intervalo: [0.7, 1.1],
         padroes: ['simples', 'dupla', 'alta', 'dupla-alta', 'gigante', 'tartaruga', 'tartaruga-dupla',
-                  'missil-baixo', 'missil-alto', 'missil-alto'],
+                  'missil-baixo', 'missil-alto', 'missil-alto', 'chuck', 'chuck'],
     },
 };
 
@@ -87,6 +87,7 @@ const PADROES = {
     'tartaruga-dupla': [{ tipo: 'tartaruga' }, { tipo: 'tartaruga' }],
     'missil-baixo': [{ tipo: 'missil', altura: MISSIL_ALTURA_BAIXA }],
     'missil-alto': [{ tipo: 'missil', altura: MISSIL_ALTURA_ALTA }],
+    'chuck': [{ tipo: 'chuck' }],
 };
 
 // ================== IMAGENS DOS INIMIGOS ==================
@@ -104,6 +105,12 @@ const SPRITES = {
         largura: 170,
         proporcao: 200 / 192,
         vazio: { lados: 0.1, topo: 0.3, baixo: 0.26 },
+    },
+    chuck: {
+        src: './IMG/CharginChuck.gif',
+        largura: 100,
+        proporcao: 519 / 500,
+        vazio: { lados: 0.08, topo: 0.05, baixo: 0.02 },
     },
 };
 
@@ -243,6 +250,13 @@ function criarTartaruga(x) {
     return tartaruga;
 }
 
+// Chargin Chuck: corre mais rápido que o cenário e não dá para pisar, só pular
+function criarChuck(x) {
+    const chuck = criarInimigo('chuck', x, 0);
+    chuck.velExtra = velocidade * 0.45;
+    return chuck;
+}
+
 // "altura" é onde fica a parte de baixo do míssil desenhado (sem a borda transparente)
 function criarMissil(altura) {
     const sprite = SPRITES.missil;
@@ -277,14 +291,15 @@ function criarObstaculo() {
 
     let x = board.clientWidth;
     pecas.forEach(peca => {
-        const obstaculo = peca.tipo === 'cano' ? criarCano(x, peca.escala) : criarTartaruga(x);
+        const obstaculo = peca.tipo === 'cano' ? criarCano(x, peca.escala)
+            : peca.tipo === 'chuck' ? criarChuck(x) : criarTartaruga(x);
         obstaculos.push(obstaculo);
         posicionar(obstaculo);
         x += obstaculo.largura + (peca.tipo === 'cano' ? -4 : 25);
     });
 
-    // tartarugas andam na sua direção, então ganham um pouco mais de espaço
-    const extra = pecas[0].tipo === 'tartaruga' ? 1.2 : 1;
+    // tartarugas e Chuck andam na sua direção, então ganham mais espaço
+    const extra = pecas[0].tipo === 'tartaruga' ? 1.2 : pecas[0].tipo === 'chuck' ? 1.4 : 1;
     proximoObstaculo = (x - board.clientWidth) + espaco * extra;
 }
 
