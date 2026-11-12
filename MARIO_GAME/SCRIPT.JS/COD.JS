@@ -67,12 +67,12 @@ const DIFICULDADES = {
     },
     insano: {
         nome: 'INSANO',
-        velInicial: 880,
-        aceleracao: 22,
-        velMax: 1600,
-        intervalo: [0.7, 1.1],
-        padroes: ['simples', 'dupla', 'alta', 'dupla-alta', 'gigante', 'tartaruga', 'tartaruga-dupla',
-                  'missil-baixo', 'missil-alto', 'missil-alto', 'chuck', 'chuck'],
+        velInicial: 1320,
+        aceleracao: 33,
+        velMax: 2400,
+        intervalo: [0.5, 0.85],
+        padroes: ['simples', 'dupla', 'alta', 'dupla-alta', 'gigante', 'tartaruga', 'tartaruga-dupla-larga',
+                  'missil-baixo', 'missil-baixo', 'missil-alto', 'missil-alto', 'chuck', 'chuck', 'tartaruga-dupla-larga'],
     },
 };
 
@@ -85,6 +85,8 @@ const PADROES = {
     'gigante': [{ tipo: 'cano', escala: 1.45 }],
     'tartaruga': [{ tipo: 'tartaruga' }],
     'tartaruga-dupla': [{ tipo: 'tartaruga' }, { tipo: 'tartaruga' }],
+    // folga: espaço entre as duas (em segundos de corrida), para dar dois pulos
+    'tartaruga-dupla-larga': [{ tipo: 'tartaruga', folga: 0.3 }, { tipo: 'tartaruga' }],
     'missil-baixo': [{ tipo: 'missil', altura: MISSIL_ALTURA_BAIXA }],
     'missil-alto': [{ tipo: 'missil', altura: MISSIL_ALTURA_ALTA }],
     'chuck': [{ tipo: 'chuck' }],
@@ -298,7 +300,7 @@ function criarObstaculo() {
             : peca.tipo === 'chuck' ? criarChuck(x) : criarTartaruga(x);
         obstaculos.push(obstaculo);
         posicionar(obstaculo);
-        x += obstaculo.largura + (peca.tipo === 'cano' ? -4 : 25);
+        x += obstaculo.largura + (peca.tipo === 'cano' ? -4 : peca.folga ? velocidade * peca.folga : 25);
     });
 
     // tartarugas e Chuck andam na sua direção, então ganham mais espaço
