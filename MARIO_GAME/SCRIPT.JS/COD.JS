@@ -31,7 +31,8 @@ const FORCA_PULO = 1400;         // velocidade inicial do pulo (px/s)
 const CANO_LARGURA = 80;
 const CANO_ALTURA = CANO_LARGURA * (375 / 293); // proporção da imagem pipe.png
 const MISSIL_ALTURA_BAIXA = 15;  // míssil baixo: precisa pular
-const MISSIL_ALTURA_ALTA = 140;  // míssil alto: passa por cima, NÃO pule
+const MARIO_ALTURA_AGACHADO = 60; // altura da caixa de colisão agachado
+const MISSIL_ALTURA_ALTA = 85;   // míssil alto: passe por baixo AGACHADO (↓)
 const AVISO_MISSIL = 0.7;        // segundos que o "!" pisca antes do míssil
 const PONTOS_POR_PIXEL = 0.02;   // quanto o placar sobe por pixel percorrido
 const PONTOS_POR_NIVEL = 300;
@@ -100,7 +101,7 @@ const SPRITES = {
     },
     missil: {
         src: './IMG/bullet-bill-mario.gif',
-        largura: 100,
+        largura: 170,
         proporcao: 200 / 192,
         vazio: { lados: 0.1, topo: 0.3, baixo: 0.26 },
     },
@@ -123,6 +124,7 @@ let marioY = 0;                  // altura do Mario acima do chão
 let marioVel = 0;
 let segurandoPulo = false;
 let descendoRapido = false;
+let agachado = false;            // ↓ no chão = agacha
 let chaoOffset = 0;
 let ultimoFrame = 0;
 let fimEm = 0;
@@ -304,7 +306,7 @@ function bateu(o) {
     return marioDir > o.x + o.margemX
         && marioEsq < o.x + o.largura - o.margemX
         && marioY < o.y + o.altura - o.margemTopo
-        && marioY + MARIO_ALTURA > o.y + o.margemBaixo;
+        && marioY + (agachado ? MARIO_ALTURA_AGACHADO : MARIO_ALTURA) > o.y + o.margemBaixo;
 }
 
 function pisarTartaruga(o) {
@@ -359,6 +361,7 @@ function iniciar() {
     marioVel = 0;
     segurandoPulo = false;
     descendoRapido = false;
+    agachado = false;
     proximoObstaculo = velocidade * 1.2;
 
     mario.src = './IMG/mario.gif';
@@ -483,7 +486,8 @@ function loop(agora) {
             if (segurandoPulo && !descendoRapido) marioVel = FORCA_PULO;
         }
     }
-    mario.style.transform = `translateY(${-marioY}px)`;
+    agachado = descendoRapido && marioY === 0;
+    mario.style.transform = `translateY(${-marioY}px)` + (agachado ? ' scaleY(0.55)' : '');
 
     // chão rolando
     chaoOffset = (chaoOffset + passo) % 1500;
