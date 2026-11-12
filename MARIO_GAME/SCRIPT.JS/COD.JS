@@ -67,9 +67,9 @@ const DIFICULDADES = {
     },
     insano: {
         nome: 'INSANO',
-        velInicial: 880,
-        aceleracao: 22,
-        velMax: 1600,
+        velInicial: 1320,
+        aceleracao: 33,
+        velMax: 2400,
         intervalo: [0.7, 1.1],
         padroes: ['simples', 'dupla', 'alta', 'dupla-alta', 'gigante', 'tartaruga', 'tartaruga-dupla',
                   'missil-baixo', 'missil-alto', 'missil-alto', 'chuck', 'chuck'],
