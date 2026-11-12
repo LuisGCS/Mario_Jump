@@ -114,6 +114,9 @@ const SPRITES = {
     },
 };
 
+// Telas estreitas (celular) têm menos espaço para reagir: a velocidade diminui
+const escalaTela = () => Math.max(0.6, Math.min(1, board.clientWidth / 900));
+
 // ================== ESTADO ==================
 let estado = 'menu';             // menu | jogando | pausado | fim
 let dificuldade = 'normal';
@@ -366,7 +369,7 @@ function iniciar() {
     const config = DIFICULDADES[dificuldade];
     limparObstaculos();
 
-    velocidade = config.velInicial;
+    velocidade = config.velInicial * escalaTela();
     tempo = 0;
     distancia = 0;
     bonus = 0;
@@ -465,7 +468,7 @@ function loop(agora) {
 
     // velocidade aumenta com o tempo
     tempo += dt;
-    velocidade = Math.min(config.velMax, config.velInicial + config.aceleracao * tempo);
+    velocidade = Math.min(config.velMax, config.velInicial + config.aceleracao * tempo) * escalaTela();
     const passo = velocidade * dt;
 
     // pontuação
@@ -588,6 +591,12 @@ board.addEventListener('pointerdown', e => {
     pular();
 });
 document.addEventListener('pointerup', soltarPulo);
+
+// botão ↓ na tela (celular): segure para agachar
+const btnAgachar = document.getElementById('btn-agachar');
+btnAgachar.addEventListener('pointerdown', () => { descendoRapido = true; });
+['pointerup', 'pointercancel', 'pointerleave'].forEach(ev =>
+    btnAgachar.addEventListener(ev, () => { descendoRapido = false; }));
 
 document.querySelectorAll('.dificuldades button').forEach(btn => {
     btn.addEventListener('click', () => escolherDificuldade(btn.dataset.dif));
