@@ -70,9 +70,9 @@ const DIFICULDADES = {
         velInicial: 1320,
         aceleracao: 33,
         velMax: 2400,
-        intervalo: [0.7, 1.1],
+        intervalo: [0.5, 0.85],
         padroes: ['simples', 'dupla', 'alta', 'dupla-alta', 'gigante', 'tartaruga', 'tartaruga-dupla',
-                  'missil-baixo', 'missil-alto', 'missil-alto', 'chuck', 'chuck'],
+                  'missil-baixo', 'missil-baixo', 'missil-alto', 'missil-alto', 'chuck', 'chuck', 'tartaruga-dupla'],
     },
 };
 
