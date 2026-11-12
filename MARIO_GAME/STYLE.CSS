@@ -16,6 +16,7 @@ body {
 .game-board {
     width: 100%;
     height: 100vh;
+    height: 100dvh; /* celular: ignora a barra do navegador */
     border: 1px solid green;
     margin: 0 auto;
     position: relative;
@@ -313,6 +314,33 @@ body {
 
 .btn-start:hover {
     transform: scale(1.06);
+}
+
+/* Botão agachar: só em aparelhos de toque */
+.btn-agachar {
+    display: none;
+    position: absolute;
+    right: 16px;
+    bottom: 40px;
+    z-index: 20;
+    width: 72px;
+    height: 72px;
+    border-radius: 50%;
+    border: 3px solid #fff;
+    background: rgba(0, 0, 0, 0.35);
+    color: #fff;
+    font-size: 32px;
+    touch-action: none;
+}
+
+@media (pointer: coarse) {
+    .btn-agachar { display: block; }
+}
+
+/* celular deitado: telas com pouca altura */
+@media (max-height: 480px) {
+    .tela { gap: 8px; padding: 8px; overflow-y: auto; }
+    .tela .dica { display: none; }
 }
 
 @media (max-width: 600px) {
