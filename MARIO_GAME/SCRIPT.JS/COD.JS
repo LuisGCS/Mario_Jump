@@ -136,6 +136,7 @@ let marioY = 0;                  // altura do Mario acima do chão
 let marioVel = 0;
 let segurandoPulo = false;
 let descendoRapido = false;
+let puloDuploGasto = false;      // já usou o pulo extra no ar
 let agachado = false;            // ↓ no chão = agacha
 let chaoOffset = 0;
 let ultimoFrame = 0;
@@ -334,6 +335,7 @@ function pisarTartaruga(o) {
     o.velExtra = 0;
     o.el.classList.add('pisada');
     marioVel = FORCA_PULO * 0.75; // quica para cima
+    puloDuploGasto = false;       // pisar devolve o pulo extra
     bonus += PONTOS_PISAR;
     bip(660, 990);
     textoFlutuante(`+${PONTOS_PISAR}`, o.x + o.largura / 2, o.altura + 20);
@@ -355,6 +357,10 @@ function pular() {
     segurandoPulo = true;
     if (marioY === 0) {
         marioVel = FORCA_PULO;
+    } else if (!puloDuploGasto) {
+        // pulo duplo: um toque extra no ar
+        puloDuploGasto = true;
+        marioVel = FORCA_PULO * 0.9;
     }
 }
 
@@ -381,6 +387,7 @@ function iniciar() {
     marioVel = 0;
     segurandoPulo = false;
     descendoRapido = false;
+    puloDuploGasto = false;
     agachado = false;
     proximoObstaculo = velocidade * 1.2;
 
@@ -502,6 +509,7 @@ function loop(agora) {
         if (marioY <= 0) {
             marioY = 0;
             marioVel = 0;
+            puloDuploGasto = false;
             // segurando o botão, pula de novo ao tocar o chão
             if (segurandoPulo && !descendoRapido) marioVel = FORCA_PULO;
         }
