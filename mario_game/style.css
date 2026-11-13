@@ -33,6 +33,62 @@ body {
     animation-play-state: paused;
 }
 
+/* ===== Dia e noite ===== */
+/* A cor do céu, a opacidade da noite e o brilho das nuvens/chão são controlados pelo JavaScript */
+.ceu-noite {
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    opacity: 0;
+    pointer-events: none;
+}
+
+.estrela {
+    position: absolute;
+    width: 3px;
+    height: 3px;
+    background: #fff;
+    animation: brilhar 1.6s steps(2) infinite;
+}
+
+.estrela.grande {
+    width: 5px;
+    height: 5px;
+}
+
+@keyframes brilhar {
+    50% { opacity: 0.3; }
+}
+
+/* lua em pixel art: um círculo com crateras */
+.lua {
+    position: absolute;
+    top: 90px;
+    right: 22%;
+    width: 64px;
+    height: 64px;
+    border-radius: 50%;
+    background: #f5f1c8;
+    box-shadow:
+        inset -10px -6px 0 #d9d3a0,
+        0 0 30px 6px #f5f1c855;
+}
+
+.lua::before,
+.lua::after {
+    content: '';
+    position: absolute;
+    border-radius: 50%;
+    background: #d9d3a0;
+}
+
+.lua::before { width: 14px; height: 14px; top: 14px; left: 16px; }
+.lua::after  { width: 9px;  height: 9px;  top: 36px; left: 34px; }
+
+.game-board.parado .estrela {
+    animation-play-state: paused;
+}
+
 /* Canos são criados pelo JavaScript */
 .pipe {
     position: absolute;
@@ -51,6 +107,11 @@ body {
     transform-origin: bottom;
     will-change: transform;
     image-rendering: pixelated; /* mantém o pixel art nítido */
+}
+
+/* Planta piranha: fica atrás do cano para parecer que sai de dentro dele */
+.inimigo.planta {
+    z-index: 4;
 }
 
 .inimigo.pisada {
@@ -106,6 +167,53 @@ body {
     transform-origin: bottom center;
 }
 
+/* Mario agachado: imagem menor, centralizada no mesmo lugar do Mario em pé */
+.mario.agachado {
+    width: 88px;
+    margin-left: 29px;
+}
+
+/* Mario voando com a capa */
+.mario.voando {
+    width: 120px;
+    margin-left: 13px;
+}
+
+/* capa acabando: pisca */
+.mario.voo-acabando {
+    animation: piscar-mario 0.15s steps(1) infinite;
+}
+
+@keyframes piscar-mario {
+    50% { opacity: 0.35; }
+}
+
+/* Pena (power-up da capa) */
+.item-pena {
+    position: absolute;
+    left: 0;
+    bottom: 179px;
+    z-index: 5;
+    will-change: transform;
+    filter: drop-shadow(0 0 6px #fff8);
+}
+
+/* aviso no placar de que a capa está pronta */
+.capa-pronta {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    color: #ffd700;
+}
+
+.capa-pronta[hidden] {
+    display: none;
+}
+
+.capa-pronta img {
+    width: 18px;
+}
+
 .mario.morto {
     width: 75px;
     margin-left: 50px;
@@ -142,7 +250,7 @@ body {
     bottom: 0;
     position: absolute;
     z-index: 7;
-    background-image: url('./IMG/floor.png');
+    background-image: url('./img/floor.png');
     background-repeat: repeat-x;
     background-size: 1500px 34px;
 }
