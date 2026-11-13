@@ -77,8 +77,7 @@ const PENA_INTERVALO = [15, 28]; // segundos entre uma pena e outra
 const CICLO_DIA = 35;
 const CICLO_NOITE = 25;
 const CICLO_TRANSICAO = 4;       // pôr do sol / amanhecer
-// cores do céu: dia → pôr do sol → noite (o amanhecer faz o caminho de volta)
-const CORES_CEU = [[65, 105, 225], [240, 138, 93], [11, 19, 64]];
+// as cores do céu de cada mundo ficam em MUNDOS (mundos.js)
 
 const IMG_MARIO = './img/mario.gif';
 const IMG_MARIO_AGACHADO = './img/agachado.png';
@@ -280,10 +279,10 @@ function alternarSom() {
     somLigado = !somLigado;
     btnSom.textContent = somLigado ? 'SOM: ON' : 'SOM: OFF';
     if (!somLigado) {
-        somTema.pause();
+        pararTrilha();
         somFim.pause();
     } else if (estado === 'jogando') {
-        tocar(somTema);
+        tocarTrilha();
     }
 }
 
@@ -677,22 +676,28 @@ function quantoNoite(t) {
     return 1 - m / CICLO_TRANSICAO;
 }
 
-function corDoCeu(n) {
+// cores: [dia, pôr do sol, noite] do mundo atual (ou uma cor só, nos mundos sem ciclo)
+function corDoCeu(cores, n) {
+    if (cores.length === 1) return `rgb(${cores[0].join(', ')})`;
     // mistura as duas cores mais próximas da lista
-    const pos = n * (CORES_CEU.length - 1);
-    const i = Math.min(Math.floor(pos), CORES_CEU.length - 2);
+    const pos = n * (cores.length - 1);
+    const i = Math.min(Math.floor(pos), cores.length - 2);
     const f = pos - i;
-    const [r, g, b] = CORES_CEU[i].map((c, k) => Math.round(c + (CORES_CEU[i + 1][k] - c) * f));
+    const [r, g, b] = cores[i].map((c, k) => Math.round(c + (cores[i + 1][k] - c) * f));
     return `rgb(${r}, ${g}, ${b})`;
 }
 
 function aplicarCeu(n) {
+    const m = mundo();
+    if (!m.ciclo) n = 0; // subterrâneo, castelo e Bowser não têm dia e noite
     if (n === noiteAtual || (Math.abs(n - noiteAtual) < 0.005 && n > 0 && n < 1)) return;
     noiteAtual = n;
-    board.style.backgroundColor = corDoCeu(n);
-    ceuNoiteEl.style.opacity = Math.max(0, n * 2 - 1);  // estrelas e lua só depois do pôr do sol
+    board.style.backgroundColor = corDoCeu(m.ceu, n);
+    ceuNoiteEl.style.opacity = m.ciclo ? Math.max(0, n * 2 - 1) : 0; // estrelas e lua só depois do pôr do sol
     nuvens.forEach(nuvem => { nuvem.style.filter = `brightness(${1 - 0.5 * n})`; });
     floor.style.filter = `brightness(${1 - 0.35 * n})`;
+    Object.values(camadasEl).forEach(el => { el.style.filter = `brightness(${1 - 0.45 * n})`; });
+    decoracaoEl.style.opacity = 1 - n; // o sol do deserto some à noite
 }
 
 function criarEstrelas() {
@@ -847,7 +852,14 @@ function iniciar() {
     removerPena();
     tempoPena = sortearEntre(PENA_PRIMEIRA);
     capaProntaEl.hidden = true;
-    aplicarCeu(0); // toda partida começa de dia
+    // toda partida começa de dia, no primeiro mundo e com a música do começo
+    pararTrilha();
+    reiniciarChiptune();
+    trocandoMundo = false;
+    transicaoEl.classList.remove('ativa');
+    avisoEl.classList.remove('aviso-bowser');
+    offsetCenario = 0;
+    aplicarMundo(0);
     partidaAtual++;
     formPlacar.hidden = true;
     nomePlacarEl.blur();
@@ -872,7 +884,7 @@ function iniciar() {
     somFim.pause();
     somFim.currentTime = 0;
     somTema.currentTime = 0;
-    tocar(somTema);
+    tocarTrilha();
 
     estado = 'jogando';
     ultimoFrame = performance.now();
@@ -890,7 +902,7 @@ function fimDeJogo() {
     mario.classList.add('morto');
     mario.style.transform = `translateY(${-marioY}px)`; // tira o espelhamento do agachado
 
-    somTema.pause();
+    pararTrilha();
     tocar(somFim);
 
     const novoRecorde = pontos > recordeAtual;
@@ -912,12 +924,12 @@ function pausar() {
         estado = 'pausado';
         board.classList.add('parado');
         telaPausa.hidden = false;
-        somTema.pause();
+        pararTrilha();
     } else if (estado === 'pausado') {
         estado = 'jogando';
         board.classList.remove('parado');
         telaPausa.hidden = true;
-        tocar(somTema);
+        tocarTrilha();
         ultimoFrame = performance.now();
         requestAnimationFrame(loop);
     }
@@ -970,6 +982,9 @@ function loop(agora) {
         mostrarAviso(`NIVEL ${nivel}!`);
     }
 
+    // muda de mundo quando os pontos passam da faixa (mundos.js)
+    atualizarMundo(pontos);
+
     // física do pulo (ou do voo com a capa)
     if (voando) {
         fisicaVoo(dt);
@@ -995,6 +1010,7 @@ function loop(agora) {
     // chão rolando
     chaoOffset = (chaoOffset + passo) % 1500;
     floor.style.backgroundPositionX = `${-chaoOffset}px`;
+    moverCenario(passo); // fundos do mundo (parallax)
 
     // avisos de míssil: quando o tempo acaba, o míssil aparece
     alertas = alertas.filter(alerta => {
@@ -1116,4 +1132,5 @@ document.addEventListener('visibilitychange', () => {
 // ================== INÍCIO ==================
 board.classList.add('parado');
 criarEstrelas();
+aplicarMundo(0);
 escolherDificuldade('normal');

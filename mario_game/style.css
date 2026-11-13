@@ -96,6 +96,124 @@ body {
     bottom: 29px;
     z-index: 5;
     will-change: transform;
+    filter: var(--filtro-canos, none); /* cada mundo pinta os canos de um jeito */
+}
+
+/* ===== Mundos ===== */
+/* camadas de fundo desenhadas pelo mundos.js; andam em velocidades diferentes (parallax) */
+.fundo-camada {
+    position: absolute;
+    left: 0;
+    right: 0;
+    background-repeat: repeat-x;
+    background-position-y: bottom;
+    image-rendering: pixelated;
+    pointer-events: none;
+}
+
+.fundo-longe { bottom: 29px; z-index: 1; }
+.fundo-perto { bottom: 29px; z-index: 2; }
+.fundo-teto  { top: 0; z-index: 2; background-position-y: top; }
+
+.game-board.sem-nuvens .clouds1,
+.game-board.sem-nuvens .clouds2,
+.game-board.sem-nuvens .clouds3 {
+    display: none;
+}
+
+/* sol do deserto e brilho de lava do mundo do Bowser */
+.decoracao-ceu {
+    position: absolute;
+    pointer-events: none;
+    z-index: 1;
+}
+
+.decoracao-ceu.sol {
+    top: 80px;
+    right: 18%;
+    width: 84px;
+    height: 84px;
+    border-radius: 50%;
+    background: #fff3b0;
+    box-shadow: 0 0 0 10px #ffe08a66, 0 0 60px 20px #ffd0605e;
+}
+
+.decoracao-ceu.brilho-lava {
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: 55%;
+    background: linear-gradient(to top, rgba(255, 90, 20, 0.45), rgba(255, 60, 0, 0));
+    animation: lava-pulsar 2.4s ease-in-out infinite alternate;
+}
+
+@keyframes lava-pulsar {
+    from { opacity: 0.7; }
+    to   { opacity: 1; }
+}
+
+/* neve caindo e brasas subindo */
+.particulas {
+    position: absolute;
+    inset: 0;
+    z-index: 3;
+    pointer-events: none;
+    overflow: hidden;
+}
+
+.particula {
+    position: absolute;
+    width: 4px;
+    height: 4px;
+}
+
+.particula.grande {
+    width: 6px;
+    height: 6px;
+}
+
+.particula.neve {
+    top: -10px;
+    background: #fff;
+    animation: cair linear infinite;
+}
+
+.particula.brasas {
+    bottom: 20px;
+    background: #ffb02e;
+    box-shadow: 0 0 6px 2px #ff6a0099;
+    animation: subir linear infinite;
+}
+
+@keyframes cair {
+    from { transform: translate(0, 0); }
+    50%  { transform: translate(18px, 50vh); }
+    to   { transform: translate(-6px, 102vh); }
+}
+
+@keyframes subir {
+    from { transform: translate(0, 0); opacity: 1; }
+    to   { transform: translate(-30px, -70vh); opacity: 0; }
+}
+
+.game-board.parado .particula,
+.game-board.parado .decoracao-ceu {
+    animation-play-state: paused;
+}
+
+/* escurece rapidinho na troca de mundo */
+.transicao-mundo {
+    position: absolute;
+    inset: 0;
+    z-index: 8;
+    background: #000;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.25s;
+}
+
+.transicao-mundo.ativa {
+    opacity: 0.85;
 }
 
 /* Tartarugas e mísseis (criados pelo JavaScript) */
@@ -318,10 +436,30 @@ body {
     transform: translateX(-50%);
     z-index: 11;
     color: #ffd700;
-    font-size: 28px;
+    font-size: clamp(14px, 4.4vw, 28px);
     text-shadow: 3px 3px 0 #000;
     white-space: nowrap;
     animation: aviso 1.5s ease-out forwards;
+}
+
+/* chegada ao mundo do Bowser: maior, vermelho e tremendo */
+.aviso.aviso-bowser {
+    color: #ff3b1f;
+    font-size: clamp(18px, 6vw, 44px);
+    text-shadow: 4px 4px 0 #000, 0 0 18px #ff6a00;
+    animation: aviso-bowser 3s ease-out forwards;
+}
+
+@keyframes aviso-bowser {
+    0%   { opacity: 0; transform: translateX(-50%) scale(2); }
+    10%  { opacity: 1; transform: translateX(-50%) scale(1); }
+    14%  { transform: translate(calc(-50% - 8px), 4px); }
+    18%  { transform: translate(calc(-50% + 8px), -4px); }
+    22%  { transform: translate(calc(-50% - 6px), 2px); }
+    26%  { transform: translate(calc(-50% + 6px), -2px); }
+    30%  { transform: translateX(-50%); }
+    85%  { opacity: 1; }
+    100% { opacity: 0; transform: translateX(-50%) scale(1.1); }
 }
 
 @keyframes aviso {

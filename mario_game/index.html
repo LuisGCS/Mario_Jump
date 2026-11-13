@@ -19,6 +19,13 @@
       <div class="ceu-noite" id="ceu-noite">
         <div class="lua"></div>
       </div>
+      <!-- Cenário de cada mundo (desenhado pelo mundos.js) -->
+      <div class="decoracao-ceu" id="decoracao-ceu"></div>
+      <div class="fundo-camada fundo-longe" id="fundo-longe" hidden></div>
+      <div class="fundo-camada fundo-perto" id="fundo-perto" hidden></div>
+      <div class="fundo-camada fundo-teto" id="fundo-teto" hidden></div>
+      <div class="particulas" id="particulas"></div>
+      <div class="transicao-mundo" id="transicao-mundo"></div>
       <img src="./img/mario.gif" class="mario" alt="Mario" />
       <img src="./img/clouds.png" class="clouds1" alt="" />
       <img src="./img/clouds.png" class="clouds2" alt="" />
@@ -30,6 +37,7 @@
         <div class="hud-esquerda">
           <span id="dificuldade-atual">NORMAL</span>
           <span>NIVEL <span id="nivel">1</span></span>
+          <span id="mundo-atual">CAMPO</span>
           <span class="capa-pronta" id="capa-pronta" hidden>
             <img src="./img/pena.png" alt="" /> CAPA: PULO DUPLO = VOAR
           </span>
@@ -111,6 +119,8 @@
       </div>
     </div>
 
+    <script src="./script.js/musica.js" defer></script>
+    <script src="./script.js/mundos.js" defer></script>
     <script src="./script.js/cod.js" defer></script>
   </body>
 </html>
