@@ -812,12 +812,15 @@ async function enviarPlacar(e) {
         });
         if (resposta.status === 429) throw new Error('ESPERE UM POUCO PARA ENVIAR DE NOVO');
         if (!resposta.ok) throw new Error('NAO FOI POSSIVEL ENVIAR');
-        const { posicao, top } = await resposta.json();
+        const { posicao, top, melhorou, melhor } = await resposta.json();
         try { localStorage.setItem(CHAVE_NOME, nome); } catch { /* sem storage */ }
         formPlacar.hidden = true;
         nomePlacarEl.blur(); // libera o espaço para jogar de novo
-        mostrarStatusPlacar(`VOCE FICOU EM ${posicao}o LUGAR!`);
-        desenharRanking(rankingFimEl, ultimaPartida.dificuldade, top, { nome, pontos: ultimaPartida.pontos });
+        // cada nome tem um só resultado: se não bateu o próprio recorde, o antigo continua
+        mostrarStatusPlacar(melhorou
+            ? `VOCE FICOU EM ${posicao}o LUGAR!`
+            : `SEU MELHOR CONTINUA ${formatar(melhor)} (${posicao}o LUGAR)`);
+        desenharRanking(rankingFimEl, ultimaPartida.dificuldade, top, { nome, pontos: melhor });
     } catch (erro) {
         botao.disabled = false;
         mostrarStatusPlacar(erro.message.startsWith('ESPERE') || erro.message.startsWith('NAO')
