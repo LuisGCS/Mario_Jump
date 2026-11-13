@@ -1,7 +1,9 @@
 // Placar online do Mario Jump (função da Vercel)
 //
 //   GET  /api/placar?dificuldade=normal&limite=10  → { top: [{ nome, pontos }] }
-//   POST /api/placar  { nome, pontos, dificuldade, tempo }  → { ok, posicao, top }
+//   POST /api/placar  { nome, pontos, dificuldade, tempo }
+//        → { ok, melhorou, nome, melhor, posicao, top }
+//   Cada nome tem um único resultado por dificuldade: o melhor.
 //
 // O banco é um Postgres (Neon) ligado pelo painel da Vercel em Storage.
 // A Vercel cria a variável DATABASE_URL sozinha; a tabela é criada no primeiro uso.
@@ -44,6 +46,14 @@ function criarTabela() {
         await sql`CREATE INDEX IF NOT EXISTS placar_ranking ON placar (dificuldade, pontos DESC, criado_em)`;
         // tabelas criadas antes aceitavam só 10 letras: amplia (não apaga nada; se já for 16, não muda)
         await sql`ALTER TABLE placar ALTER COLUMN nome TYPE VARCHAR(16)`;
+        // um resultado por nome em cada dificuldade: se já houver repetidos (versão anterior),
+        // fica só o melhor (empate: o mais antigo) e o banco passa a impedir novos repetidos
+        await sql`
+            DELETE FROM placar a USING placar b
+            WHERE a.dificuldade = b.dificuldade AND a.nome = b.nome AND a.id <> b.id
+              AND (a.pontos < b.pontos
+                   OR (a.pontos = b.pontos AND (a.criado_em, a.id) > (b.criado_em, b.id)))`;
+        await sql`CREATE UNIQUE INDEX IF NOT EXISTS placar_um_por_nome ON placar (dificuldade, nome)`;
     })().catch(erro => { tabelaPronta = null; throw erro; });
     return tabelaPronta;
 }
@@ -126,15 +136,30 @@ export default async function handler(req, res) {
                 return res.status(429).json({ erro: 'Muitos envios. Espere um pouco.' });
             }
 
-            await sql`
+            // um resultado por nome: grava se for nome novo ou se bateu o próprio recorde
+            const gravou = await sql`
                 INSERT INTO placar (nome, pontos, dificuldade, tempo, ip_hash)
-                VALUES (${nome}, ${pontos}, ${dif}, ${tempo}, ${ipHash})`;
+                VALUES (${nome}, ${pontos}, ${dif}, ${tempo}, ${ipHash})
+                ON CONFLICT (dificuldade, nome) DO UPDATE
+                    SET pontos = EXCLUDED.pontos, tempo = EXCLUDED.tempo,
+                        ip_hash = EXCLUDED.ip_hash, criado_em = now()
+                    WHERE EXCLUDED.pontos > placar.pontos
+                RETURNING id`;
 
+            const [{ melhor }] = await sql`
+                SELECT pontos AS melhor FROM placar WHERE dificuldade = ${dif} AND nome = ${nome}`;
             const [{ acima }] = await sql`
                 SELECT count(*)::int AS acima FROM placar
-                WHERE dificuldade = ${dif} AND pontos > ${pontos}`;
+                WHERE dificuldade = ${dif} AND pontos > ${melhor}`;
 
-            return res.status(201).json({ ok: true, posicao: acima + 1, top: await buscarTop(dif, TAMANHO_TOP) });
+            return res.status(201).json({
+                ok: true,
+                melhorou: gravou.length > 0,  // false = o recorde desse nome já era maior
+                nome,
+                melhor,
+                posicao: acima + 1,
+                top: await buscarTop(dif, TAMANHO_TOP),
+            });
         }
 
         res.setHeader('Allow', 'GET, POST');
