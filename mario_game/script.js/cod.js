@@ -693,7 +693,8 @@ function aplicarCeu(n) {
     if (n === noiteAtual || (Math.abs(n - noiteAtual) < 0.005 && n > 0 && n < 1)) return;
     noiteAtual = n;
     board.style.backgroundColor = corDoCeu(m.ceu, n);
-    ceuNoiteEl.style.opacity = m.ciclo ? Math.max(0, n * 2 - 1) : 0; // estrelas e lua só depois do pôr do sol
+    // estrelas e lua só depois do pôr do sol (na pista arco-íris, estrelas o tempo todo)
+    ceuNoiteEl.style.opacity = m.estrelas ? 1 : m.ciclo ? Math.max(0, n * 2 - 1) : 0;
     nuvens.forEach(nuvem => { nuvem.style.filter = `brightness(${1 - 0.5 * n})`; });
     floor.style.filter = `brightness(${1 - 0.35 * n})`;
     Object.values(camadasEl).forEach(el => { el.style.filter = `brightness(${1 - 0.45 * n})`; });
@@ -860,6 +861,7 @@ function iniciar() {
     avisoEl.classList.remove('aviso-bowser');
     offsetCenario = 0;
     aplicarMundo(0);
+    resetarBowser();
     partidaAtual++;
     formPlacar.hidden = true;
     nomePlacarEl.blur();
@@ -903,6 +905,7 @@ function fimDeJogo() {
     mario.style.transform = `translateY(${-marioY}px)`; // tira o espelhamento do agachado
 
     pararTrilha();
+    pausarBowser();
     tocar(somFim);
 
     const novoRecorde = pontos > recordeAtual;
@@ -925,6 +928,7 @@ function pausar() {
         board.classList.add('parado');
         telaPausa.hidden = false;
         pararTrilha();
+        pausarBowser();
     } else if (estado === 'pausado') {
         estado = 'jogando';
         board.classList.remove('parado');
@@ -1034,6 +1038,7 @@ function loop(agora) {
     }
 
     atualizarPena(dt, passo);
+    atualizarBowser(dt); // Bowser no canto cuspindo fogo (bowser.js)
     obstaculos = obstaculos.filter(o => {
         if (o.x + o.largura < -20) {
             o.el.remove();

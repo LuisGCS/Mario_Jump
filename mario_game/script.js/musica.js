@@ -108,6 +108,29 @@ const MUSICAS = {
         ],
         bateria: 'k . h k s . h . k k h . s . s s',
     },
+
+    // Pista Arco-Íris: sol maior, rápida e animada, arpejos de corrida no espaço
+    arcoiris: {
+        bpm: 144,
+        canais: [
+            { onda: 'square', volume: 0.38, notas: `
+                G5 . B5 . D6 . B5 . A5 . F#5 . D5 - - .
+                E5 . G5 . B5 . A5 . G5 - - - - - . .
+                C6 . B5 . A5 . G5 . A5 . B5 . D6 - - .
+                C6 . A5 . F#5 . A5 . G5 - - - - - . .` },
+            { onda: 'square', volume: 0.14, curta: true, notas: `
+                G4 B4 D5 B4 G4 B4 D5 B4 D5 F#5 A5 F#5 D5 F#5 A5 F#5
+                E4 G4 B4 G4 E4 G4 B4 G4 E4 G4 B4 G4 E4 G4 B4 G4
+                C5 E5 G5 E5 C5 E5 G5 E5 D5 F#5 A5 F#5 D5 F#5 A5 F#5
+                D5 F#5 A5 F#5 D5 F#5 A5 F#5 G4 B4 D5 B4 G4 B4 D5 B4` },
+            { onda: 'triangle', volume: 0.9, curta: true, notas: `
+                G2 . G3 . G2 . G3 . D2 . D3 . D2 . D3 .
+                E2 . E3 . E2 . E3 . E2 . E3 . B1 . B2 .
+                C2 . C3 . C2 . C3 . D2 . D3 . D2 . D3 .
+                D2 . D3 . D2 . D3 . G2 . G3 . G2 . . .` },
+        ],
+        bateria: 'k . h . s . h h k . h . s . h .',
+    },
 };
 
 const VOLUME_MUSICA = 0.14;

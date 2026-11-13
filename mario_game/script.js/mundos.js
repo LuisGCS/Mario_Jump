@@ -180,6 +180,42 @@ const DESENHOS = {
         particulas: 'brasas',
         decoracao: 'brilho-lava',
     },
+
+    arcoiris: {
+        // espaço: planeta com anel, estrelas coloridas e um pedaço de pista arco-íris ao longe
+        longe: imagemSvg(520, 300, (() => {
+            const cores = ['#ff4d4d', '#ff9f1c', '#ffe14d', '#3ddc84', '#3d9bff', '#a259ff'];
+            let s = '';
+            // pista ao longe: arco em degraus com as seis cores
+            cores.forEach((cor, i) => {
+                for (let k = 0; k < 16; k++) {
+                    const x = 250 + k * 16;
+                    const y = 210 - Math.round(Math.sin(k / 15 * Math.PI) * 90) + i * 5;
+                    s += ret(x, y, 16, 5, cor);
+                }
+            });
+            // planeta com anel
+            for (let y = -40; y < 40; y += 8) {
+                const w = Math.round(Math.sqrt(1600 - (y + 4) ** 2) / 4) * 8;
+                s += ret(110 - w / 2, 90 + y, w, 8, y < 0 ? '#7b5cff' : '#5a3fd6');
+            }
+            s += ret(50, 92, 120, 6, '#ffd36e') + ret(40, 96, 20, 4, '#ffd36e') + ret(160, 88, 20, 4, '#ffd36e');
+            // estrelinhas coloridas
+            for (const [x, y, c] of [[30, 30, '#fff'], [200, 40, '#ffe14d'], [330, 20, '#fff'], [460, 60, '#3d9bff'],
+                [400, 130, '#fff'], [20, 200, '#ff9f1c'], [190, 160, '#fff'], [480, 250, '#a259ff']]) {
+                s += ret(x, y, 4, 4, c) + ret(x - 4, y, 12, 1, c + '88') + ret(x + 1, y - 4, 1, 12, c + '88');
+            }
+            return s;
+        })()),
+        // chão: a pista com as seis faixas e a borda branca tracejada
+        chao: imagemSvg(60, 34, (() => {
+            const cores = ['#ff4d4d', '#ff9f1c', '#ffe14d', '#3ddc84', '#3d9bff', '#a259ff'];
+            let s = ret(0, 0, 60, 34, '#ffffff') + ret(30, 0, 30, 4, '#c9c9ff');
+            cores.forEach((cor, i) => { s += ret(0, 4 + i * 5, 60, 5, cor); });
+            s += ret(0, 4, 2, 30, '#ffffff55'); // emenda clarinha: dá a sensação de velocidade
+            return s;
+        })()),
+    },
 };
 
 const MUNDOS = [
@@ -194,7 +230,10 @@ const MUNDOS = [
     { id: 'castelo', nome: 'CASTELO', pontos: 7000, musica: 'castelo', ciclo: false, nuvens: false,
       ceu: [[26, 20, 38]], canos: 'grayscale(0.55) brightness(0.9)' },
     { id: 'bowser', nome: 'MUNDO DO BOWSER', pontos: 10000, musica: 'bowser', ciclo: false, nuvens: false,
-      ceu: [[42, 6, 8]], canos: 'hue-rotate(-115deg) saturate(1.4) brightness(0.85)', final: true },
+      ceu: [[42, 6, 8]], canos: 'hue-rotate(-115deg) saturate(1.4) brightness(0.85)', chefe: true },
+    // o último: quem chega fica nele até o fim da partida (canos trocam de cor pelo CSS)
+    { id: 'arcoiris', nome: 'PISTA ARCO-IRIS', pontos: 15000, musica: 'arcoiris', ciclo: false, nuvens: false,
+      ceu: [[8, 6, 30]], estrelas: true },
 ];
 
 // ---------- estado ----------
@@ -288,8 +327,8 @@ function trocarMundo(indice) {
     setTimeout(() => {
         aplicarMundo(indice);
         const m = mundo();
-        mostrarAviso(m.final ? m.nome : `MUNDO ${indice + 1}: ${m.nome}`);
-        avisoEl.classList.toggle('aviso-bowser', !!m.final);
+        mostrarAviso(m.chefe ? m.nome : `MUNDO ${indice + 1}: ${m.nome}`);
+        avisoEl.classList.toggle('aviso-bowser', !!m.chefe);
         if (estado === 'jogando') tocarTrilha();
         transicaoEl.classList.remove('ativa');
         trocandoMundo = false;
