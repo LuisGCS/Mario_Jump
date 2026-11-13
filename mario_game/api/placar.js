@@ -23,6 +23,7 @@ const MAX_PISADAS_POR_SEGUNDO = 1;   // folga generosa: tartarugas são só part
 const TEMPO_MAXIMO = 60 * 60;        // 1 hora de partida
 const ENVIOS_POR_MINUTO = 5;         // por jogador (IP)
 const TAMANHO_TOP = 10;
+const TAMANHO_NOME = 16;             // se mudar, mude também o VARCHAR(16) abaixo e o cod.js
 
 const urlBanco = process.env.DATABASE_URL || process.env.POSTGRES_URL;
 const sql = urlBanco ? neon(urlBanco) : null;
@@ -33,7 +34,7 @@ function criarTabela() {
         await sql`
             CREATE TABLE IF NOT EXISTS placar (
                 id          SERIAL PRIMARY KEY,
-                nome        VARCHAR(10) NOT NULL,
+                nome        VARCHAR(16) NOT NULL,
                 pontos      INTEGER NOT NULL CHECK (pontos BETWEEN 1 AND 99999),
                 dificuldade VARCHAR(10) NOT NULL,
                 tempo       REAL NOT NULL,
@@ -41,6 +42,8 @@ function criarTabela() {
                 criado_em   TIMESTAMPTZ NOT NULL DEFAULT now()
             )`;
         await sql`CREATE INDEX IF NOT EXISTS placar_ranking ON placar (dificuldade, pontos DESC, criado_em)`;
+        // tabelas criadas antes aceitavam só 10 letras: amplia (não apaga nada; se já for 16, não muda)
+        await sql`ALTER TABLE placar ALTER COLUMN nome TYPE VARCHAR(16)`;
     })().catch(erro => { tabelaPronta = null; throw erro; });
     return tabelaPronta;
 }
@@ -57,7 +60,7 @@ function pontosMaximos(dif, tempo) {
     return Math.floor(distancia * PONTOS_POR_PIXEL) + bonus + 5;
 }
 
-// Nome estilo fliperama: só letras sem acento, números e espaço, até 10
+// Nome estilo fliperama: só letras sem acento, números e espaço, até TAMANHO_NOME
 function limparNome(nome) {
     return String(nome ?? '')
         .normalize('NFD').replace(/[̀-ͯ]/g, '') // tira acentos
@@ -65,7 +68,7 @@ function limparNome(nome) {
         .replace(/[^A-Z0-9 ]/g, '')
         .replace(/\s+/g, ' ')
         .trim()
-        .slice(0, 10);
+        .slice(0, TAMANHO_NOME);
 }
 
 // Guarda só um resumo do IP (não o IP), para limitar envios repetidos

@@ -711,6 +711,7 @@ function criarEstrelas() {
 // sem servidor, o placar online só não aparece; o recorde local continua valendo.
 const API_PLACAR = './api/placar';
 const TAMANHO_TOP = 10;
+const TAMANHO_NOME = 16;         // igual ao api/placar.js
 const CHAVE_NOME = 'mario-jump-nome';
 
 let partidaAtual = 0;            // muda a cada partida (ignora respostas atrasadas)
@@ -795,7 +796,7 @@ async function enviarPlacar(e) {
     e.preventDefault();
     const nome = nomePlacarEl.value
         .normalize('NFD').replace(/[̀-ͯ]/g, '')
-        .toUpperCase().replace(/[^A-Z0-9 ]/g, '').trim().slice(0, 10);
+        .toUpperCase().replace(/[^A-Z0-9 ]/g, '').trim().slice(0, TAMANHO_NOME);
     if (!nome) {
         nomePlacarEl.focus();
         return;
@@ -1099,7 +1100,7 @@ formPlacar.addEventListener('submit', enviarPlacar);
 nomePlacarEl.addEventListener('input', () => {
     nomePlacarEl.value = nomePlacarEl.value
         .normalize('NFD').replace(/[̀-ͯ]/g, '')
-        .toUpperCase().replace(/[^A-Z0-9 ]/g, '');
+        .toUpperCase().replace(/[^A-Z0-9 ]/g, '').slice(0, TAMANHO_NOME);
 });
 document.getElementById('btn-reiniciar').addEventListener('click', iniciar);
 btnSom.addEventListener('click', e => {
