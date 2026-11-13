@@ -381,9 +381,12 @@ body {
     text-align: left;
 }
 
-.ranking-duas-colunas .ranking-lista {
-    columns: 2;
-    column-gap: 28px;
+/* duas colunas só em telas largas: com nomes de 16 letras não cabe no celular */
+@media (min-width: 720px) {
+    .ranking-duas-colunas .ranking-lista {
+        columns: 2;
+        column-gap: 28px;
+    }
 }
 
 .ranking-lista li {
@@ -437,7 +440,8 @@ body {
 }
 
 .form-placar input {
-    width: 13ch;
+    width: 19ch;
+    max-width: 60vw;
     color: #000;
     background: #fff;
     text-transform: uppercase;
