@@ -232,8 +232,22 @@ body {
     transform: translateX(130%);
 }
 
+/* parado e atacando com a mesma altura: o Bowser fica do mesmo tamanho nos dois */
+.bowser-cameo {
+    /* no celular (tela estreita) fica menor, para sobrar espaço para a bola de fogo cair */
+    --bowser-altura: clamp(70px, min(22vh, 22vw), 170px);
+}
+
 .bowser-cameo img {
-    width: clamp(90px, 14vw, 140px);
+    height: var(--bowser-altura);
+    width: auto;
+    image-rendering: pixelated;
+}
+
+.bowser-ataque {
+    height: var(--bowser-altura);
+    aspect-ratio: 170 / 114;
+    background-repeat: no-repeat;
     image-rendering: pixelated;
 }
 

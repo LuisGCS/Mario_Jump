@@ -5,8 +5,16 @@
 // Usa a imagem img/bowser.gif. Enquanto ela não existir, nada disso acontece.
 // A voz é sintetizada pelo navegador (não é o áudio original do meme).
 
-const BOWSER_IMAGEM = './img/bowser.gif';
+const BOWSER_IMAGEM = './img/bowser.gif';          // Bowser parado (aparece e grita)
 const BOWSER_ESPELHAR = false;          // true se o GIF olhar para a direita (ele precisa olhar para o Mario)
+// ataque: folha com os quadros lado a lado (controlada pelo tempo do jogo, para o golpe
+// sair na hora certa e pausar junto); já está espelhada, com o soco para a esquerda
+const BOWSER_ATAQUE = './img/bowser-ataque.png';
+const ATAQUE_QUADROS = 10;
+const ATAQUE_TEMPO_QUADRO = 0.1;        // segundos por quadro
+const ATAQUE_QUADRO_GOLPE = 8;          // quadro em que o punho de fogo sai
+const ATAQUE_PROPORCAO = 170 / 114;     // largura / altura de cada quadro
+const ATAQUE_PUNHO = 0.5;               // altura do punho (fração, de cima para baixo)
 const BOWSER_INTERVALO = [25, 45];      // segundos entre uma aparição e outra
 const BOWSER_INTERVALO_MUNDO = [12, 20]; // no Mundo do Bowser ele aparece mais
 const BOWSER_PRIMEIRA = 10;             // não aparece antes disso (segundos de partida)
@@ -18,7 +26,14 @@ const FOGO_REACAO = 0.3;                // tempo mínimo entre o 1º quique e ch
 const FOGO_REACAO_MINIMA = 0.22;        // abaixo disso não cospe (tela estreita + muito rápido)
 
 // linha do tempo de uma aparição (segundos)
-const CAMEO = { entra: 0, fala: 0.3, cospe: 0.9, sai: 1.8, fim: 2.2 };
+const CAMEO = {
+    entra: 0,
+    fala: 0.25,
+    ataque: 1.0,
+    cospe: 1.0 + ATAQUE_QUADRO_GOLPE * ATAQUE_TEMPO_QUADRO, // = 1,8s, no quadro do golpe
+    sai: 2.5,
+    fim: 2.9,
+};
 
 // bola de fogo em pixel art (desenhada aqui)
 const IMG_FOGO = (() => {
@@ -37,13 +52,15 @@ ATUALIZAR.bolaFogo = atualizarBolaFogo;
 
 const bowserEl = document.getElementById('bowser-cameo');
 const bowserImgEl = bowserEl.querySelector('img');
+const bowserAtaqueEl = bowserEl.querySelector('.bowser-ataque');
 const bowser = {
-    disponivel: false,   // a imagem carregou?
+    disponivel: false,   // a imagem do Bowser parado carregou?
+    ataque: false,       // a folha do ataque carregou?
     proxima: 0,          // segundos até a próxima aparição
-    cameo: null,         // { t, cuspiu } durante uma aparição
+    cameo: null,         // { t, falou, atacando, cuspiu } durante uma aparição
 };
 
-function carregarImagemBowser(src = BOWSER_IMAGEM) {
+function carregarImagemBowser(src = BOWSER_IMAGEM, srcAtaque = BOWSER_ATAQUE) {
     const img = new Image();
     img.onload = () => {
         bowser.disponivel = true;
@@ -51,6 +68,24 @@ function carregarImagemBowser(src = BOWSER_IMAGEM) {
         bowserImgEl.classList.toggle('espelhado', BOWSER_ESPELHAR);
     };
     img.src = src;
+    const folha = new Image();
+    folha.onload = () => {
+        bowser.ataque = true;
+        bowserAtaqueEl.style.backgroundImage = `url("${srcAtaque}")`;
+    };
+    folha.src = srcAtaque;
+}
+
+// mostra o Bowser parado ou o ataque (num quadro da folha)
+function mostrarAtaque(quadro) {
+    const atacando = quadro !== null;
+    bowserImgEl.hidden = atacando;
+    bowserAtaqueEl.hidden = !atacando;
+    if (atacando) {
+        const largura = bowserAtaqueEl.clientWidth;
+        bowserAtaqueEl.style.backgroundSize = `${largura * ATAQUE_QUADROS}px 100%`;
+        bowserAtaqueEl.style.backgroundPositionX = `${-quadro * largura}px`;
+    }
 }
 
 const sortearIntervaloBowser = () =>
@@ -62,6 +97,7 @@ function resetarBowser() {
     bowser.proxima = BOWSER_PRIMEIRA + sortearIntervaloBowser() * 0.5;
     bowserEl.className = 'bowser-cameo';
     bowserEl.hidden = true;
+    mostrarAtaque(null);
     if ('speechSynthesis' in window) speechSynthesis.cancel();
 }
 
@@ -86,6 +122,7 @@ function atualizarBowser(dt) {
             bowser.cameo = { t: 0, falou: false, cuspiu: false };
             bowserEl.hidden = false;
             bowserEl.className = 'bowser-cameo entrando';
+            mostrarAtaque(null);
         }
         return;
     }
@@ -97,7 +134,15 @@ function atualizarBowser(dt) {
         bowserEl.classList.add('falando');
         falarToasty();
     }
-    if (!c.cuspiu && c.t >= CAMEO.cospe) {
+    // ataque: troca para a folha e avança um quadro a cada 0,1s (o último fica parado)
+    if (bowser.ataque && c.t >= CAMEO.ataque) {
+        bowserEl.classList.remove('falando'); // o balão sai da frente da bola
+        const quadro = Math.min(ATAQUE_QUADROS - 1, Math.floor((c.t - CAMEO.ataque) / ATAQUE_TEMPO_QUADRO));
+        mostrarAtaque(quadro);
+    }
+    // sem a folha do ataque, ele cospe logo depois de falar
+    const horaDeCuspir = bowser.ataque ? CAMEO.cospe : CAMEO.ataque;
+    if (!c.cuspiu && c.t >= horaDeCuspir) {
         c.cuspiu = true;
         cuspirFogo();
     }
@@ -112,11 +157,14 @@ function atualizarBowser(dt) {
 // a bola sai da boca do Bowser e é jogada para tocar o chão antes de chegar no Mario
 function cuspirFogo() {
     // posição final do Bowser no canto (não depende de a animação de entrada já ter terminado)
+    // a bola sai do punho (ataque) ou da boca (sem a folha do ataque)
     const caixaBoard = board.getBoundingClientRect();
-    const caixaImg = bowserImgEl.getBoundingClientRect();
+    const atacando = !bowserAtaqueEl.hidden;
+    const caixaImg = (atacando ? bowserAtaqueEl : bowserImgEl).getBoundingClientRect();
     const margemDireita = parseFloat(getComputedStyle(bowserEl).right) || 0;
     const x0 = caixaBoard.width - margemDireita - caixaImg.width;            // lado esquerdo do Bowser
-    const y0 = caixaBoard.bottom - CHAO - (caixaImg.top + caixaImg.height * 0.45); // altura da boca
+    const altura = atacando ? ATAQUE_PUNHO : 0.45;
+    const y0 = caixaBoard.bottom - CHAO - (caixaImg.top + caixaImg.height * altura);
 
     // onde tocar o chão: longe o bastante do Mario para dar tempo de pular depois do quique
     const vChao = velocidade * 1.15;          // no chão ela rola junto com o cenário (e um pouco mais rápida)
