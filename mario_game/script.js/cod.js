@@ -11,6 +11,11 @@ const avisoEl = document.getElementById('aviso');
 const btnSom = document.getElementById('btn-som');
 const capaProntaEl = document.getElementById('capa-pronta');
 const ceuNoiteEl = document.getElementById('ceu-noite');
+const rankingMenuEl = document.getElementById('ranking-menu');
+const rankingFimEl = document.getElementById('ranking-fim');
+const formPlacar = document.getElementById('form-placar');
+const nomePlacarEl = document.getElementById('nome-placar');
+const statusPlacarEl = document.getElementById('status-placar');
 const nuvens = document.querySelectorAll('.clouds1, .clouds2, .clouds3');
 
 const telaInicio = document.getElementById('tela-inicio');
@@ -84,7 +89,7 @@ const IMAGENS_MARIO = { normal: IMG_MARIO, agachado: IMG_MARIO_AGACHADO, voando:
 // Cada dificuldade muda velocidade, aceleração, espaço entre obstáculos e quais aparecem
 const DIFICULDADES = {
     facil: {
-        nome: 'FÁCIL',
+        nome: 'FACIL',
         velInicial: 460,
         aceleracao: 7,
         velMax: 880,
@@ -101,7 +106,7 @@ const DIFICULDADES = {
                   'chuck-pula', 'cano-planta', 'koopa-voador'],
     },
     dificil: {
-        nome: 'DIFÍCIL',
+        nome: 'DIFICIL',
         velInicial: 730,
         aceleracao: 16,
         velMax: 1350,
@@ -291,6 +296,7 @@ function escolherDificuldade(dif) {
     });
     dificuldadeAtualEl.textContent = DIFICULDADES[dif].nome;
     recordeEl.textContent = formatar(lerRecorde(dif));
+    atualizarRankingMenu();
 }
 
 // ================== OBSTÁCULOS ==================
@@ -700,6 +706,124 @@ function criarEstrelas() {
     }
 }
 
+// ================== PLACAR ONLINE ==================
+// Fala com a função api/placar.js (Vercel). Abrindo o jogo direto do arquivo,
+// sem servidor, o placar online só não aparece; o recorde local continua valendo.
+const API_PLACAR = './api/placar';
+const TAMANHO_TOP = 10;
+const CHAVE_NOME = 'mario-jump-nome';
+
+let partidaAtual = 0;            // muda a cada partida (ignora respostas atrasadas)
+let ultimaPartida = null;        // { pontos, tempo, dificuldade } da partida que acabou
+
+async function buscarTop(dif, limite = TAMANHO_TOP) {
+    const resposta = await fetch(`${API_PLACAR}?dificuldade=${dif}&limite=${limite}`, { cache: 'no-store' });
+    if (!resposta.ok) throw new Error(`placar respondeu ${resposta.status}`);
+    return (await resposta.json()).top;
+}
+
+// desenha a lista; "destaque" marca a linha do jogador que acabou de enviar
+function desenharRanking(caixa, dif, top, destaque) {
+    caixa.querySelector('.ranking-dif').textContent = DIFICULDADES[dif].nome;
+    const lista = caixa.querySelector('.ranking-lista');
+    lista.replaceChildren();
+    if (top.length === 0) {
+        const li = document.createElement('li');
+        li.className = 'vazio';
+        li.textContent = 'NINGUEM AINDA. SEJA O PRIMEIRO!';
+        lista.appendChild(li);
+    }
+    let destacou = false;
+    for (const linha of top) {
+        const li = document.createElement('li');
+        const nome = document.createElement('span');
+        nome.className = 'nome';
+        nome.textContent = linha.nome;
+        const pts = document.createElement('span');
+        pts.textContent = formatar(linha.pontos);
+        li.append(nome, pts);
+        if (!destacou && destaque && linha.nome === destaque.nome && linha.pontos === destaque.pontos) {
+            li.classList.add('voce');
+            destacou = true;
+        }
+        lista.appendChild(li);
+    }
+    caixa.hidden = false;
+}
+
+async function atualizarRankingMenu() {
+    const dif = dificuldade;
+    try {
+        const top = await buscarTop(dif, 5);
+        if (dif === dificuldade) desenharRanking(rankingMenuEl, dif, top);
+    } catch {
+        rankingMenuEl.hidden = true; // sem servidor: segue sem placar online
+    }
+}
+
+function mostrarStatusPlacar(texto) {
+    statusPlacarEl.textContent = texto;
+    statusPlacarEl.hidden = !texto;
+}
+
+async function mostrarPlacarFim() {
+    const partida = partidaAtual;
+    formPlacar.hidden = true;
+    rankingFimEl.hidden = true;
+    mostrarStatusPlacar('CARREGANDO PLACAR...');
+    try {
+        const top = await buscarTop(ultimaPartida.dificuldade);
+        if (partida !== partidaAtual) return; // já começou outra partida
+        mostrarStatusPlacar('');
+        desenharRanking(rankingFimEl, ultimaPartida.dificuldade, top);
+
+        const entrou = ultimaPartida.pontos > 0
+            && (top.length < TAMANHO_TOP || ultimaPartida.pontos > top[top.length - 1].pontos);
+        if (entrou) {
+            formPlacar.hidden = false;
+            formPlacar.querySelector('button').disabled = false;
+            try { nomePlacarEl.value = localStorage.getItem(CHAVE_NOME) || ''; } catch { /* sem storage */ }
+            nomePlacarEl.focus();
+            nomePlacarEl.select();
+        }
+    } catch {
+        if (partida === partidaAtual) mostrarStatusPlacar('');
+    }
+}
+
+async function enviarPlacar(e) {
+    e.preventDefault();
+    const nome = nomePlacarEl.value
+        .normalize('NFD').replace(/[̀-ͯ]/g, '')
+        .toUpperCase().replace(/[^A-Z0-9 ]/g, '').trim().slice(0, 10);
+    if (!nome) {
+        nomePlacarEl.focus();
+        return;
+    }
+    const botao = formPlacar.querySelector('button');
+    botao.disabled = true;
+    mostrarStatusPlacar('ENVIANDO...');
+    try {
+        const resposta = await fetch(API_PLACAR, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ nome, ...ultimaPartida }),
+        });
+        if (resposta.status === 429) throw new Error('ESPERE UM POUCO PARA ENVIAR DE NOVO');
+        if (!resposta.ok) throw new Error('NAO FOI POSSIVEL ENVIAR');
+        const { posicao, top } = await resposta.json();
+        try { localStorage.setItem(CHAVE_NOME, nome); } catch { /* sem storage */ }
+        formPlacar.hidden = true;
+        nomePlacarEl.blur(); // libera o espaço para jogar de novo
+        mostrarStatusPlacar(`VOCE FICOU EM ${posicao}o LUGAR!`);
+        desenharRanking(rankingFimEl, ultimaPartida.dificuldade, top, { nome, pontos: ultimaPartida.pontos });
+    } catch (erro) {
+        botao.disabled = false;
+        mostrarStatusPlacar(erro.message.startsWith('ESPERE') || erro.message.startsWith('NAO')
+            ? erro.message : 'PLACAR ONLINE INDISPONIVEL');
+    }
+}
+
 // ================== FLUXO DO JOGO ==================
 function iniciar() {
     const config = DIFICULDADES[dificuldade];
@@ -723,6 +847,9 @@ function iniciar() {
     tempoPena = sortearEntre(PENA_PRIMEIRA);
     capaProntaEl.hidden = true;
     aplicarCeu(0); // toda partida começa de dia
+    partidaAtual++;
+    formPlacar.hidden = true;
+    nomePlacarEl.blur();
     proximoObstaculo = velocidade * 1.2;
 
     spriteMario = 'normal';
@@ -774,6 +901,9 @@ function fimDeJogo() {
     fimPontosEl.textContent = formatar(pontos);
     novoRecordeEl.hidden = !novoRecorde;
     telaFim.hidden = false;
+
+    ultimaPartida = { pontos, tempo: Math.round(tempo * 100) / 100, dificuldade };
+    mostrarPlacarFim();
 }
 
 function pausar() {
@@ -836,7 +966,7 @@ function loop(agora) {
     if (novoNivel !== nivel) {
         nivel = novoNivel;
         nivelEl.textContent = nivel;
-        mostrarAviso(`NÍVEL ${nivel}!`);
+        mostrarAviso(`NIVEL ${nivel}!`);
     }
 
     // física do pulo (ou do voo com a capa)
@@ -916,6 +1046,11 @@ function loop(agora) {
 const TECLAS_PULO = ['Space', 'ArrowUp', 'KeyW'];
 
 document.addEventListener('keydown', e => {
+    // digitando o nome do placar: as teclas não controlam o jogo (Esc sai do campo)
+    if (e.target === nomePlacarEl) {
+        if (e.code === 'Escape') nomePlacarEl.blur();
+        return;
+    }
     if (TECLAS_PULO.includes(e.code) || e.code === 'ArrowDown') e.preventDefault();
 
     if (e.code === 'KeyM') return alternarSom();
@@ -959,6 +1094,13 @@ document.querySelectorAll('.dificuldades button').forEach(btn => {
     btn.addEventListener('click', () => escolherDificuldade(btn.dataset.dif));
 });
 document.getElementById('btn-start').addEventListener('click', iniciar);
+formPlacar.addEventListener('submit', enviarPlacar);
+// só letras, números e espaço no nome (sem acento: a fonte não desenha bem)
+nomePlacarEl.addEventListener('input', () => {
+    nomePlacarEl.value = nomePlacarEl.value
+        .normalize('NFD').replace(/[̀-ͯ]/g, '')
+        .toUpperCase().replace(/[^A-Z0-9 ]/g, '');
+});
 document.getElementById('btn-reiniciar').addEventListener('click', iniciar);
 btnSom.addEventListener('click', e => {
     alternarSom();

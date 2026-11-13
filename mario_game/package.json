@@ -1,0 +1,9 @@
+{
+  "name": "mario-jump",
+  "private": true,
+  "type": "module",
+  "description": "Mario Jump: jogo no navegador com placar online (função da Vercel em api/placar.js)",
+  "dependencies": {
+    "@neondatabase/serverless": "^1.0.0"
+  }
+}

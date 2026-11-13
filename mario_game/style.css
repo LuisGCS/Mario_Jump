@@ -350,6 +350,116 @@ body {
     text-shadow: 2px 2px 0 #000;
 }
 
+/* se o conteúdo não couber (ranking + botões), a tela rola em vez de cortar */
+.tela {
+    overflow-y: auto;
+    justify-content: safe center;
+}
+
+#tela-fim {
+    gap: 14px;
+}
+
+/* ===== Placar online ===== */
+.ranking {
+    font-size: 10px;
+    min-width: 240px;
+}
+
+.ranking-titulo {
+    color: #ffd700;
+    margin-bottom: 8px;
+}
+
+.tela .ranking-titulo {
+    font-size: 10px;
+}
+
+.ranking-lista {
+    list-style: none;
+    counter-reset: posicao;
+    text-align: left;
+}
+
+.ranking-duas-colunas .ranking-lista {
+    columns: 2;
+    column-gap: 28px;
+}
+
+.ranking-lista li {
+    counter-increment: posicao;
+    display: flex;
+    gap: 10px;
+    justify-content: space-between;
+    padding: 3px 0;
+    break-inside: avoid;
+}
+
+.ranking-lista li::before {
+    content: counter(posicao) '.';
+    min-width: 2.5ch;
+    opacity: 0.7;
+}
+
+.ranking-lista li .nome {
+    flex: 1;
+}
+
+.ranking-lista li.voce {
+    color: #ffd700;
+    animation: piscar 0.5s steps(1) 6;
+}
+
+.ranking-lista li.vazio::before {
+    content: '';
+}
+
+.form-placar {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    font-size: 11px;
+    color: #ffd700;
+}
+
+.form-placar-linha {
+    display: flex;
+    gap: 8px;
+}
+
+.form-placar input,
+.form-placar button {
+    font-family: inherit;
+    font-size: 14px;
+    padding: 8px 10px;
+    border: 3px solid #fff;
+}
+
+.form-placar input {
+    width: 13ch;
+    color: #000;
+    background: #fff;
+    text-transform: uppercase;
+}
+
+.form-placar button {
+    color: #000;
+    background: #ffd700;
+    border-color: #ffd700;
+    cursor: pointer;
+}
+
+.form-placar button:disabled {
+    opacity: 0.5;
+    cursor: wait;
+}
+
+.tela .status-placar {
+    font-size: 10px;
+    opacity: 0.85;
+}
+
 .tela h1 {
     font-size: clamp(24px, 6vw, 56px);
     color: #ffd700;

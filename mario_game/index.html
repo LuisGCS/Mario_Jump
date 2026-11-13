@@ -29,7 +29,7 @@
       <div class="hud">
         <div class="hud-esquerda">
           <span id="dificuldade-atual">NORMAL</span>
-          <span>NÍVEL <span id="nivel">1</span></span>
+          <span>NIVEL <span id="nivel">1</span></span>
           <span class="capa-pronta" id="capa-pronta" hidden>
             <img src="./img/pena.png" alt="" /> CAPA: PULO DUPLO = VOAR
           </span>
@@ -51,21 +51,26 @@
         <h1>MARIO JUMP</h1>
         <p>ESCOLHA A DIFICULDADE</p>
         <div class="dificuldades">
-          <button data-dif="facil">1 · FÁCIL</button>
+          <button data-dif="facil">1 · FACIL</button>
           <button data-dif="normal">2 · NORMAL</button>
-          <button data-dif="dificil">3 · DIFÍCIL</button>
+          <button data-dif="dificil">3 · DIFICIL</button>
           <button data-dif="insano">4 · INSANO</button>
         </div>
         <button class="btn-start" id="btn-start">
           <img src="./img/daco_4422541.png" alt="START" />
         </button>
+        <!-- Placar online: top 5 da dificuldade escolhida -->
+        <div class="ranking" id="ranking-menu" hidden>
+          <p class="ranking-titulo">TOP 5 · <span class="ranking-dif"></span></p>
+          <ol class="ranking-lista"></ol>
+        </div>
         <p class="dica">
-          ESPAÇO / ↑ PULAR (DE NOVO NO AR = PULO DUPLO) · SEGURE PARA PULAR MAIS ALTO<br />↓ AGACHAR (NO AR: DESCER RÁPIDO) ·
+          ESPAÇO / ↑ PULAR (DE NOVO NO AR = PULO DUPLO) · SEGURE PARA PULAR MAIS ALTO<br />↓ AGACHAR (NO AR: DESCER RAPIDO) ·
           P PAUSAR · M SOM<br />
           CELULAR: TOQUE NA TELA PARA PULAR · BOTÃO ↓ PARA AGACHAR<br />
-          PISE NAS TARTARUGAS (+50) · "!" = MÍSSIL CHEGANDO: O ALTO, AGACHE
+          PISE NAS TARTARUGAS (+50) · "!" = MISSIL CHEGANDO: O ALTO, AGACHE
           PARA PASSAR POR BAIXO<br />
-          PEGUE A PENA: O PRÓXIMO PULO DUPLO VIRA VOO DE 5s (SEGURE PARA SUBIR)
+          PEGUE A PENA: O PROXIMO PULO DUPLO VIRA VOO DE 5s (SEGURE PARA SUBIR)
         </p>
       </div>
 
@@ -80,10 +85,23 @@
         <img src="./img/overpic.png" class="img-game-over" alt="GAME OVER" />
         <p>PONTOS: <span id="fim-pontos">0</span></p>
         <p class="novo-recorde" id="novo-recorde" hidden>NOVO RECORDE!</p>
+        <!-- Placar online: aparece se a pontuação entrou no top 10 -->
+        <form class="form-placar" id="form-placar" hidden>
+          <label for="nome-placar">ENTROU NO TOP 10! SEU NOME:</label>
+          <div class="form-placar-linha">
+            <input id="nome-placar" maxlength="10" autocomplete="off" spellcheck="false" />
+            <button type="submit">ENVIAR</button>
+          </div>
+        </form>
+        <p class="status-placar" id="status-placar" hidden></p>
+        <div class="ranking ranking-duas-colunas" id="ranking-fim" hidden>
+          <p class="ranking-titulo">TOP 10 · <span class="ranking-dif"></span></p>
+          <ol class="ranking-lista"></ol>
+        </div>
         <div class="dificuldades">
-          <button data-dif="facil">1 · FÁCIL</button>
+          <button data-dif="facil">1 · FACIL</button>
           <button data-dif="normal">2 · NORMAL</button>
-          <button data-dif="dificil">3 · DIFÍCIL</button>
+          <button data-dif="dificil">3 · DIFICIL</button>
           <button data-dif="insano">4 · INSANO</button>
         </div>
         <button class="btn-start" id="btn-reiniciar">
