@@ -81,10 +81,22 @@ function limparNome(nome) {
         .slice(0, TAMANHO_NOME);
 }
 
-// Guarda só um resumo do IP (não o IP), para limitar envios repetidos
+// Guarda só um resumo do IP (não o IP), para limitar envios repetidos.
+// x-real-ip é preenchido pela própria Vercel (o jogador não consegue trocar).
+// O resumo só fica no banco por IP_GUARDADO_MINUTOS (ver limparIps).
+const IP_GUARDADO_MINUTOS = 10;
+
 function resumoIp(req) {
-    const ip = String(req.headers['x-forwarded-for'] || '').split(',')[0].trim() || 'desconhecido';
+    const ip = String(req.headers['x-real-ip'] || req.headers['x-forwarded-for'] || '')
+        .split(',')[0].trim() || 'desconhecido';
     return createHash('sha256').update(`mario-jump:${ip}`).digest('hex').slice(0, 16);
+}
+
+// o resumo do IP só serve para o limite por minuto: depois disso é apagado
+async function limparIps() {
+    await sql`
+        UPDATE placar SET ip_hash = NULL
+        WHERE ip_hash IS NOT NULL AND criado_em < now() - make_interval(mins => ${IP_GUARDADO_MINUTOS})`;
 }
 
 async function buscarTop(dif, limite) {
@@ -128,6 +140,7 @@ export default async function handler(req, res) {
                 return res.status(400).json({ erro: 'Pontuação inválida.' });
             }
 
+            await limparIps();
             const ipHash = resumoIp(req);
             const [{ envios }] = await sql`
                 SELECT count(*)::int AS envios FROM placar
